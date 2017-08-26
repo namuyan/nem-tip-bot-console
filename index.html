@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="js/umd/popper.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    <title>NEM tipbot websocket API debug console</title>
+</head>
+
+<body>
+    <div class="container theme-showcase">
+        <div class="jumbotron-fluid">
+            <h1>NEM tipbot websocket API debug console</h1>
+        </div>
+
+
+        <!-- connect page -->
+        <div id="connect" class="jumbotron" style="display: block;">
+            <form name="connect_form_name" action="">
+                IP : <input name="ws_url" type="text" value="ws://127.0.0.1:8359">
+                <button class="btn btn-primary" type="button" id="connect_btn">login</button>
+            </form>
+        </div>
+
+        <!-- control page -->
+        <div id="control" style="display: none;">
+            <div class="">
+                <table class="table table-striped">
+                    <thead><tr>
+                        <td><a href="http://www.jsoneditoronline.org/">jsoneditoronline.org</a></td>
+                        <td><a href="http://bootstrap3-guide.com/base/prepare_demo_no_theme.html#" >bootstrap3-guide.com</a></td>
+                        <td><a href="how_to_login.html" >How to login</a></td>
+                    </tr></thead>
+                    <tbody>
+                    <tr><th>Message</th><td id="global_msg"></td></tr>
+                    <tr><th>user code</th><td id="user_code"></td></tr>
+                    <tr><th>ログインネーム</th><td id="screen"></td></tr>
+                    <tr><th>認証レベル</th><td id="level"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="jumbotron">
+                <form name="command_form_name" id="command_form_id" action="">
+                    cmd : <input id="cmd_id" name="cmd" autocomplete="on">
+                    <button onclick='document.data_form_name.cmd_data.value="{\"dummy\":\"data\"}";return false;'>set dummy</button>
+                </form>
+                <form name="data_form_name" id="data_form_id" action="">
+                    <textarea name="cmd_data" cols=80 rows=8></textarea>
+                </form>
+                <button class="" onclick="chenge_req_stre();">Streaming <=> request</button>
+            </div>
+
+            <!-- streaming data -->
+            <div id="streaming_data" style="display:block;">
+                <h1>streaming</h1>
+                <div id="streaming_table">
+                    <table class="table table-bordered">
+                        <tr><th>type</th><th>command</th><th>time</th><th>result</th></tr>
+                        <tr><td colspan="4">data</td></tr>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- request data -->
+            <div id="request_data" style="display: none;">
+                <h1>request</h1>
+                <div id="request_table">
+                    <table class="table table-bordered">
+                        <tr><th>type</th><th>command</th><th>time</th><th>result</th></tr>
+                        <tr><td colspan="4">data</td></tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
+
+<script type="text/javascript">
+    // global
+    var ws = null;
+    var global_msg = document.getElementById('global_msg')
+
+    // websocket connection
+    $('#connect_btn').click(function(){
+        // コネクト処理
+        var url = document.connect_form_name.ws_url.value;
+        ws = new WebSocket(url);
+        // イベントハンドラの設定
+        ws.onopen = onOpen;
+        ws.onmessage = onMessage;
+        ws.onclose = onClose;
+        ws.onerror = onError;
+        // connect pageを閉じる, control pageを開く
+        document.getElementById("connect").style.display="none";
+        document.getElementById("control").style.display="block";
+    });
+
+    // on click enter key
+    $(function(){
+        $("input").on("keydown", function(e) {
+            if ((e.which && e.which === 13) || (e.keyCode && e.keyCode === 13)) {
+                console.log("# on click Enter key!");
+                var cmd = document.command_form_name.cmd.value;
+                var data =document.data_form_name.cmd_data.value;
+                console.log(cmd);
+                console.log(data);
+                var json_data = send_command(cmd, data);
+                if(json_data[0]){
+                    ws.send(json_data[1]);
+                    global_msg.innerHTML = "sending success!";
+                }else{
+                    global_msg.innerHTML = "sending error! " + json_data[1];
+                }
+                return false;
+            }
+        });
+    });
+
+    // check JSON string
+    function send_command(cmd, data) {
+        try {
+            var a = JSON.parse(data);
+            var s = {'command':cmd, 'data':a};
+            return [true, JSON.stringify(s)]
+
+        } catch(e) {
+            global_msg.innerHTML = "json parse error:" + e;
+            return [false, e]
+        }
+    }
+
+    // decode message
+    level_name = {
+        0: 'guest',
+        1: 'login user',
+        2: 'login user (Enhanced)',
+        3: 'contents creator',
+        4: 'contents creator (Enhanced)',
+        255: 'admin'
+    }
+    function decode_msg(msg) {
+        if('user_code' in msg){
+            document.getElementById('user_code').innerHTML = msg['user_code'];
+            document.getElementById('screen').innerHTML = '@'+msg['screen'];
+            document.getElementById('level').innerHTML = msg['level']+' '+level_name[msg['level']];
+            return
+        }
+        if('user/login/check' == msg['command'] && msg['result'] == true){
+            document.getElementById('screen').innerHTML = msg['data']['screen_name'];
+            document.getElementById('level').innerHTML = msg['data']['level']+' '+level_name[msg['data']['level']];
+        }
+        console.log(msg['data']);
+        var table_id = msg['type'] == 'request' ? '#request_table' : '#streaming_table';
+        var result = msg['result'] == true ? "<span style='color:green;'>success</span>" : "<span style='color:red;'>failed</span>"
+        var json_data = JSON.stringify(msg['data'],undefined,4)
+        var table_d = "<table class='table table-bordered'>";
+        var display_data = table_d.length > 120 ? json_data.replace("\n","<BR>") : json_data;
+        table_d += "<tr><td>"+msg['type']+"</td><td>"+msg['command']+"</td><td>"+get_date(msg['time'])+"</td><td>"+result+"</td></tr>";
+        table_d += "<tr><td colspan='4'>"+display_data+"</td></tr>";
+        table_d += "</table>";
+        $(table_id).prepend(table_d);
+        //console.log(JSON.stringify(msg['data'],undefined,4));
+    }
+
+    // change streaming <=> request table
+    function chenge_req_stre() {
+        var elem1 = document.getElementById("streaming_data");
+        var elem2 = document.getElementById("request_data");
+        if(elem1.style.display == 'block'){
+            elem1.style.display="none";
+            elem2.style.display="block";
+        }else{
+            elem1.style.display="block";
+            elem2.style.display="none";
+        }
+    }
+
+    // get date
+    function get_date(timestamp) {
+        var d = new Date(timestamp * 1000);
+        var year  = d.getFullYear();
+        var month = d.getMonth() + 1;
+        var day   = d.getDate();
+        var hour  = ( d.getHours()   < 10 ) ? '0' + d.getHours()   : d.getHours();
+        var min   = ( d.getMinutes() < 10 ) ? '0' + d.getMinutes() : d.getMinutes();
+        var sec   = ( d.getSeconds() < 10 ) ? '0' + d.getSeconds() : d.getSeconds();
+        return year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + sec;
+    }
+    
+    function n_to_br(key, value) {
+        
+    }
+</script>
+
+<!-- on open -->
+<script type="text/javascript">
+    function onOpen(event) {
+        global_msg.innerHTML = "# 接続しました。";
+    }
+</script>
+
+<!-- on message -->
+<script type="text/javascript">
+    var num = 0;
+    function onMessage(event) {
+        num += 1;
+        if (event && event.data) {
+            var message = JSON.parse(event.data);
+            console.log("# msg: " + num);
+            decode_msg(message);
+        }
+    }
+</script>
+
+<!-- on error -->
+<script type="text/javascript">
+    function onError(event) {
+        global_msg.innerHTML = "# エラーが発生しました。";
+    }
+</script>
+
+<!-- on close -->
+<script type="text/javascript">
+    function onClose(event) {
+        global_msg.innerHTML = "# 切断しました。再読み込みして下さい。(" + event.code + ")";
+    }
+</script>
