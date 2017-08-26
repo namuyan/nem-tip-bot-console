@@ -14,7 +14,8 @@ WebSocketをテストする為のツールが用意されています。[debug c
 ## 接続確立
 1. ログイン　mainnet : `ws://127.0.0.1:8359` 、testnet :`ws://127.0.0.1:8359` 
 ログインすると以下のような画面になります。
-<img src="img/debug_console1.png" style="width:80%;">
+
+<img src="img/debug_console1.png">
 
 2. 接続が確立されると以下のJSONﾞが返ってきます。
 ```json
@@ -33,12 +34,15 @@ WebSocketをテストする為のツールが用意されています。[debug c
 
 ## 一般ユーザーとしてログイン
 
-<img src="img/debug_console2.png" style="width:80%;">
+<img src="img/debug_console2.png">
 
-<img src="img/debug_console3.png" style="width:80%;">
+* `user/login/offer` にてpincodeをDM経由で発行されます。
+* pincodeの有効期限は1時間で、認証に失敗すると再発行が必要になります。
 
-* `user/login/offer` にてpincodeをDM経由で発行する。
+<img src="img/debug_console3.png">
+
 * `user/login/check` にてpincodeを入力しログインユーザーになる (level=1)
+* streamingよりユーザー関連情報も流れてくるようになります。
 
 
 
