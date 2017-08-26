@@ -34,10 +34,10 @@
                         <td><a href="how_to_login.html" >How to login</a></td>
                     </tr></thead>
                     <tbody>
-                    <tr><th>Message</th><td id="global_msg"></td></tr>
-                    <tr><th>user code</th><td id="user_code"></td></tr>
-                    <tr><th>ログインネーム</th><td id="screen"></td></tr>
-                    <tr><th>認証レベル</th><td id="level"></td></tr>
+                    <tr><th>Message</th><td id="global_msg"></td><td></td></tr>
+                    <tr><th>user code</th><td id="user_code"></td><td></td></tr>
+                    <tr><th>ログインネーム</th><td id="screen"></td><td></td></tr>
+                    <tr><th>認証レベル</th><td id="level"></td><td></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -83,13 +83,18 @@
 <script type="text/javascript">
     // global
     var ws = null;
-    var global_msg = document.getElementById('global_msg')
+    var global_msg = document.getElementById('global_msg');
 
     // websocket connection
     $('#connect_btn').click(function(){
         // コネクト処理
         var url = document.connect_form_name.ws_url.value;
-        ws = new WebSocket(url);
+        try{
+            ws = new WebSocket(url);
+        } catch(e) {
+            window.alert(e);
+            return;
+        }
         // イベントハンドラの設定
         ws.onopen = onOpen;
         ws.onmessage = onMessage;
@@ -142,7 +147,7 @@
         3: 'contents creator',
         4: 'contents creator (Enhanced)',
         255: 'admin'
-    }
+    };
     function decode_msg(msg) {
         if('user_code' in msg){
             document.getElementById('user_code').innerHTML = msg['user_code'];
@@ -157,7 +162,7 @@
         console.log(msg['data']);
         var table_id = msg['type'] == 'request' ? '#request_table' : '#streaming_table';
         var result = msg['result'] == true ? "<span style='color:green;'>success</span>" : "<span style='color:red;'>failed</span>"
-        var json_data = JSON.stringify(msg['data'],undefined,4)
+        var json_data = JSON.stringify(msg['data'],undefined,4);
         var table_d = "<table class='table table-bordered'>";
         var display_data = table_d.length > 120 ? json_data.replace("\n","<BR>") : json_data;
         table_d += "<tr><td>"+msg['type']+"</td><td>"+msg['command']+"</td><td>"+get_date(msg['time'])+"</td><td>"+result+"</td></tr>";
