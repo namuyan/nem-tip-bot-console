@@ -155,7 +155,7 @@
             document.getElementById('level').innerHTML = msg['level']+' '+level_name[msg['level']];
             return
         }
-        if('user/login/check' == msg['command'] && msg['result'] == true){
+        if('user/check' == msg['command'] && msg['result'] == true){
             document.getElementById('screen').innerHTML = msg['data']['screen_name'];
             document.getElementById('level').innerHTML = msg['data']['level']+' '+level_name[msg['data']['level']];
         }
