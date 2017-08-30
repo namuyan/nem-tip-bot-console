@@ -18,8 +18,13 @@
 
         <!-- connect page -->
         <div id="connect" class="jumbotron" style="display: block;">
+            <div style="margin: 20px;">
+                <button onclick="push_address(1);">Mainnet</button>　
+                <button onclick="push_address(0);">Testnet</button>　
+                <button onclick="push_address(3);">Localhot</button>
+            </div>
             <form name="connect_form_name" action="">
-                IP : <input name="ws_url" type="text" value="ws://127.0.0.1:8359">
+                IP : <input name="ws_url" type="text" value="ws://127.0.0.1:8080">
                 <button class="btn btn-primary" type="button" id="connect_btn">login</button>
             </form>
         </div>
@@ -196,9 +201,16 @@
         var sec   = ( d.getSeconds() < 10 ) ? '0' + d.getSeconds() : d.getSeconds();
         return year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + sec;
     }
-    
-    function n_to_br(key, value) {
-        
+
+    // input IP address
+    function push_address(net) {
+        switch (net) {
+            case 0: _address = 'ws://153.122.86.46:8080'; break;
+            case 1: _address = 'ws://153.122.86.46:8088'; break;
+            default: _address = 'ws://127.0.0.1:8080'; break;
+                break;
+        }
+        document.connect_form_name.ws_url.value = _address;
     }
 </script>
 
