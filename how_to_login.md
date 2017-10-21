@@ -12,7 +12,7 @@ WebSocketをテストする為のツールが用意されています。[debug c
 * コンテンツクリエイター認証
 
 ## 接続確立
-1. ログイン　mainnet : `ws://153.122.86.46:8088` 、testnet :`ws://153.122.86.46:8080` 
+1. ログイン　mainnet : `ws://127.0.0.1:8359` 、testnet :`ws://127.0.0.1:8359` 
 ログインすると以下のような画面になります。
 
 <img src="img/debug_console1.png">
@@ -36,12 +36,12 @@ WebSocketをテストする為のツールが用意されています。[debug c
 
 <img src="img/debug_console2.png">
 
-* `user/offer` にてpincodeをDM経由で発行されます。
+* `user/login/offer` にてpincodeをDM経由で発行されます。
 * pincodeの有効期限は1時間で、認証に失敗すると再発行が必要になります。
 
 <img src="img/debug_console3.png">
 
-* `user/check` にてpincodeを入力しログインユーザーになる (level=1)
+* `user/login/check` にてpincodeを入力しログインユーザーになる (level=1)
 * streamingよりユーザー関連情報も流れてくるようになります。
 
 

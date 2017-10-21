@@ -21,7 +21,7 @@
             <div style="margin: 20px;">
                 <button onclick="push_address(1);">Mainnet</button>　
                 <button onclick="push_address(0);">Testnet</button>　
-                <button onclick="push_address(3);">Localhot</button>
+                <button onclick="push_address(3);">Localhost</button>
             </div>
             <form name="connect_form_name" action="">
                 IP : <input name="ws_url" type="text" value="ws://127.0.0.1:8080">
@@ -54,7 +54,7 @@
                 <form name="data_form_name" id="data_form_id" action="">
                     <textarea name="cmd_data" cols=80 rows=8></textarea>
                 </form>
-                <button class="" onclick="chenge_req_stre();">Streaming <=> request</button>
+                <button class="" onclick="chenge_req_stre();">Streaming <=> request  <=> debug</button>
             </div>
 
             <!-- streaming data -->
@@ -76,6 +76,16 @@
                     <table class="table table-bordered">
                         <tr><th>type</th><th>command</th><th>time</th><th>result</th></tr>
                         <tr><td colspan="4">data</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- debug data -->
+            <div id="debug_data" style="display: none;">
+                <h1>debug</h1>
+                <div>
+                    <table id="debug_table" class="table table-bordered">
+                        <tr><th>time</th><th>thread</th><th>data</th></tr>
                     </table>
                 </div>
             </div>
@@ -163,8 +173,19 @@
         if('user/check' == msg['command'] && msg['result'] == true){
             document.getElementById('screen').innerHTML = msg['data']['screen_name'];
             document.getElementById('level').innerHTML = msg['data']['level']+' '+level_name[msg['data']['level']];
+        }else if('debug/message' == msg['command']){
+            var t = document.getElementById("debug_table");
+            var row = t.insertRow(1);
+            var cell1 = row.insertCell(-1);
+            var cell2 = row.insertCell(-1);
+            var cell3 = row.insertCell(-1);
+            cell1.innerHTML = get_date(msg['time']);
+            cell2.innerHTML = msg['data']['thread'];
+            cell3.innerHTML = msg['data']['message'];
+            return
         }
         console.log(msg['data']);
+        console.log(msg['spent_msec']+" msec");
         var table_id = msg['type'] == 'request' ? '#request_table' : '#streaming_table';
         var result = msg['result'] == true ? "<span style='color:green;'>success</span>" : "<span style='color:red;'>failed</span>"
         var json_data = JSON.stringify(msg['data'],undefined,4);
@@ -177,16 +198,26 @@
         //console.log(JSON.stringify(msg['data'],undefined,4));
     }
 
-    // change streaming <=> request table
+    // change streaming <=> request table <=> debug table
     function chenge_req_stre() {
         var elem1 = document.getElementById("streaming_data");
         var elem2 = document.getElementById("request_data");
+        var elem3 = document.getElementById("debug_data");
         if(elem1.style.display == 'block'){
+            console.debug("ele1");
             elem1.style.display="none";
             elem2.style.display="block";
-        }else{
+            elem3.style.display="none";
+        }else if(elem2.style.display == 'block'){
+            console.debug("ele2");
+            elem1.style.display="none";
+            elem2.style.display="none";
+            elem3.style.display="block";
+        }else {
+            console.debug("ele3");
             elem1.style.display="block";
             elem2.style.display="none";
+            elem3.style.display="none";
         }
     }
 
